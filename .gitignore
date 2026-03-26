@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+*.db
+.pytest_cache/
+data/*.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Node
+node_modules/
+frontend/dist/
+frontend/release/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Electron
+frontend/release/
+
+# Claude
+.claude/
+.claude-internal/
