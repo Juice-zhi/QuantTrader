@@ -201,7 +201,7 @@ class BacktestResult(Base):
     __tablename__ = "backtest_results"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    strategy_id: Mapped[int] = mapped_column(ForeignKey("strategies.id"), index=True)
+    strategy_id: Mapped[Optional[int]] = mapped_column(ForeignKey("strategies.id"), nullable=True, index=True)
     symbol_name: Mapped[str] = mapped_column(String(50))
     timeframe: Mapped[TimeFrame] = mapped_column(SAEnum(TimeFrame))
     start_date: Mapped[datetime] = mapped_column(DateTime)

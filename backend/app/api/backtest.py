@@ -17,7 +17,7 @@ from app.backtest.engine import BacktestEngine, BacktestConfig
 
 # 触发注册
 from app.factors import technical, momentum, volatility, volume, composite
-from app.strategies import mean_reversion, momentum_strategy, factor_combo, grid_trading, dual_ma
+from app.strategies import mean_reversion, momentum_strategy, factor_combo, grid_trading, dual_ma, price_action, ict_strategy, trend_following
 
 router = APIRouter(prefix="/api/backtest", tags=["Backtest"])
 

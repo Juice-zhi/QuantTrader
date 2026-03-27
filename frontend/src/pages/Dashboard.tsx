@@ -1,16 +1,31 @@
 import { useEffect, useState } from 'react';
 import { tradingApi, strategiesApi, factorsApi } from '../services/api';
-import { TrendingUp, TrendingDown, DollarSign, Activity, Layers, BarChart3 } from 'lucide-react';
+import {
+  Wallet, Activity, Layers, BarChart3,
+  ArrowUpRight, ArrowDownRight, Sparkles
+} from 'lucide-react';
 
-function Card({ title, value, sub, icon: Icon, color }: any) {
+function MetricCard({ title, value, sub, icon: Icon, color, delay = 0 }: any) {
   return (
-    <div className="rounded-xl p-5 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>{title}</span>
-        <Icon size={18} style={{ color }} />
+    <div className="qt-card qt-card-glow animate-in" style={{ animationDelay: `${delay}ms` }}>
+      <div className="flex items-start justify-between mb-4">
+        <span className="qt-label">{title}</span>
+        <div
+          style={{
+            width: 32, height: 32, borderRadius: 'var(--radius-sm)',
+            background: `${color}12`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Icon size={16} style={{ color }} />
+        </div>
       </div>
-      <div className="text-2xl font-bold" style={{ color }}>{value}</div>
-      {sub && <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{sub}</div>}
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 600, color, letterSpacing: '-0.02em', lineHeight: 1 }}>
+        {value}
+      </div>
+      {sub && (
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>{sub}</div>
+      )}
     </div>
   );
 }
@@ -34,60 +49,158 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-6">Dashboard</h2>
-
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        <Card title="Total Equity" value={`$${equity.toLocaleString()}`} icon={DollarSign} color="var(--accent)" />
-        <Card
-          title="Realized PnL"
-          value={`${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`}
-          icon={pnl >= 0 ? TrendingUp : TrendingDown}
-          color={pnl >= 0 ? 'var(--green)' : 'var(--red)'}
-        />
-        <Card title="Unrealized PnL" value={`$${unrealized.toFixed(2)}`}
-          icon={Activity} color={unrealized >= 0 ? 'var(--green)' : 'var(--red)'} />
-        <Card title="Open Positions" value={positions} sub={`${activeStrats} active strategies`}
-          icon={Layers} color="var(--yellow)" />
+      {/* Header */}
+      <div className="flex items-end justify-between mb-8 animate-in">
+        <div>
+          <div className="qt-label mb-2">Overview</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
+            Dashboard
+          </h1>
+        </div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl p-5 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-            <Layers size={16} style={{ color: 'var(--accent)' }} /> Strategies ({strategies.length})
-          </h3>
+      {/* Metric Cards */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        <MetricCard
+          title="Total Equity"
+          value={`$${equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+          icon={Wallet}
+          color="var(--accent)"
+          delay={50}
+        />
+        <MetricCard
+          title="Realized PnL"
+          value={`${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`}
+          icon={pnl >= 0 ? ArrowUpRight : ArrowDownRight}
+          color={pnl >= 0 ? 'var(--green)' : 'var(--red)'}
+          delay={100}
+        />
+        <MetricCard
+          title="Unrealized PnL"
+          value={`$${unrealized.toFixed(2)}`}
+          icon={Activity}
+          color={unrealized >= 0 ? 'var(--green)' : 'var(--red)'}
+          delay={150}
+        />
+        <MetricCard
+          title="Positions"
+          value={positions}
+          sub={`${activeStrats} active / ${strategies.length} total strategies`}
+          icon={Layers}
+          color="var(--blue)"
+          delay={200}
+        />
+      </div>
+
+      {/* Bottom Sections */}
+      <div className="grid grid-cols-5 gap-4">
+        {/* Strategies Panel — wider */}
+        <div className="col-span-3 qt-card animate-in" style={{ animationDelay: '250ms' }}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <Layers size={15} style={{ color: 'var(--accent)' }} />
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Strategies</span>
+              <span className="qt-badge" style={{ background: 'var(--accent-glow)', color: 'var(--accent)' }}>
+                {strategies.length}
+              </span>
+            </div>
+          </div>
+
           {strategies.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              No strategies configured. Go to Strategies page to create one.
-            </p>
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Sparkles size={28} style={{ color: 'var(--text-muted)', margin: '0 auto 12px' }} />
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                No strategies configured yet
+              </p>
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                Navigate to Strategies to create one
+              </p>
+            </div>
           ) : (
-            <div className="space-y-2">
-              {strategies.slice(0, 5).map((s: any) => (
-                <div key={s.id} className="flex items-center justify-between py-2 px-3 rounded-lg"
-                     style={{ background: 'var(--bg-secondary)' }}>
-                  <span className="text-sm">{s.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    s.is_enabled ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {s.status}
-                  </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {strategies.slice(0, 6).map((s: any) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--bg-primary)',
+                    border: '1px solid var(--border-subtle)',
+                    transition: 'border-color 0.2s',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      style={{
+                        width: 7, height: 7, borderRadius: '50%',
+                        background: s.is_enabled ? 'var(--green)' : 'var(--text-muted)',
+                        ...(s.is_enabled ? { boxShadow: '0 0 6px var(--green)' } : {}),
+                      }}
+                    />
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{s.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="qt-badge" style={{
+                      background: s.is_enabled ? 'var(--green-dim)' : 'var(--bg-elevated)',
+                      color: s.is_enabled ? 'var(--green)' : 'var(--text-muted)',
+                    }}>
+                      {s.status}
+                    </span>
+                    <span className="qt-badge" style={{ background: 'var(--blue-dim)', color: 'var(--blue)' }}>
+                      {s.execution_mode}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="rounded-xl p-5 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 size={16} style={{ color: 'var(--accent)' }} /> Factor Library
-          </h3>
-          <div className="text-4xl font-bold mb-2" style={{ color: 'var(--accent)' }}>{factorCount}</div>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>factors available across 5 categories</p>
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {['technical', 'momentum', 'volatility', 'volume', 'composite'].map(c => (
-              <span key={c} className="text-xs px-2 py-1 rounded-md" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
-                {c}
-              </span>
+        {/* Factor Library Panel */}
+        <div className="col-span-2 qt-card animate-in" style={{ animationDelay: '300ms' }}>
+          <div className="flex items-center gap-2.5 mb-5">
+            <BarChart3 size={15} style={{ color: 'var(--accent)' }} />
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Factor Library</span>
+          </div>
+
+          <div style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 48, fontWeight: 700,
+            lineHeight: 1,
+            marginBottom: 8,
+          }}>
+            <span className="text-gradient">{factorCount}</span>
+          </div>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.5 }}>
+            factors available across 5 analytical categories
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[
+              { name: 'Technical', count: 9, color: 'var(--accent)' },
+              { name: 'Momentum', count: 5, color: 'var(--green)' },
+              { name: 'Volatility', count: 5, color: 'var(--red)' },
+              { name: 'Volume', count: 6, color: 'var(--yellow)' },
+              { name: 'Composite', count: 1, color: 'var(--purple)' },
+            ].map(cat => (
+              <div key={cat.name} className="flex items-center gap-3" style={{ padding: '6px 0' }}>
+                <div style={{ width: 3, height: 16, borderRadius: 2, background: cat.color }} />
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)', flex: 1 }}>{cat.name}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: cat.color }}>{cat.count}</span>
+                <div style={{
+                  flex: 2, height: 3, borderRadius: 2, background: 'var(--bg-primary)',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    width: `${(cat.count / 26) * 100}%`, height: '100%',
+                    borderRadius: 2, background: cat.color, opacity: 0.6,
+                  }} />
+                </div>
+              </div>
             ))}
           </div>
         </div>

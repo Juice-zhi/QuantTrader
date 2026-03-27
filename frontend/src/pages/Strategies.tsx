@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { strategiesApi } from '../services/api';
-import { Play, Square, Plus, Trash2 } from 'lucide-react';
+import { Play, Square, Plus, Trash2, X, Cpu } from 'lucide-react';
 
 export default function Strategies() {
   const [types, setTypes] = useState<any[]>([]);
@@ -15,10 +15,7 @@ export default function Strategies() {
   useEffect(load, []);
 
   const create = async () => {
-    await strategiesApi.create({
-      ...form,
-      params: JSON.parse(form.params || '{}'),
-    });
+    await strategiesApi.create({ ...form, params: JSON.parse(form.params || '{}') });
     setShowCreate(false);
     setForm({ name: '', strategy_type: '', exchange: 'paper', params: '{}' });
     load();
@@ -36,105 +33,139 @@ export default function Strategies() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">Strategy Control Center</h2>
-        <button onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-          style={{ background: 'var(--accent)' }}>
-          <Plus size={16} /> New Strategy
+      {/* Header */}
+      <div className="flex items-end justify-between mb-8 animate-in">
+        <div>
+          <div className="qt-label mb-2">Control Center</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text-bright)', letterSpacing: '-0.02em' }}>
+            Strategies
+          </h1>
+        </div>
+        <button onClick={() => setShowCreate(!showCreate)} className="qt-btn qt-btn-accent">
+          {showCreate ? <X size={15} /> : <Plus size={15} />}
+          {showCreate ? 'Cancel' : 'New Strategy'}
         </button>
       </div>
 
       {/* Create Form */}
       {showCreate && (
-        <div className="rounded-xl p-5 border mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <h3 className="text-sm font-semibold mb-4">Create Strategy</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <input placeholder="Strategy Name" value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              className="px-3 py-2 rounded-lg text-sm border bg-transparent"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }} />
-            <select value={form.strategy_type}
-              onChange={e => {
-                const t = types.find(t => t.name === e.target.value);
-                setForm({ ...form, strategy_type: e.target.value, params: JSON.stringify(t?.params || {}, null, 2) });
-              }}
-              className="px-3 py-2 rounded-lg text-sm border"
-              style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
-              <option value="">Select Strategy Type...</option>
-              {types.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-            </select>
-            <select value={form.exchange} onChange={e => setForm({ ...form, exchange: e.target.value })}
-              className="px-3 py-2 rounded-lg text-sm border"
-              style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
-              <option value="paper">Paper Trading</option>
-              <option value="binance">Binance</option>
-              <option value="okx">OKX</option>
-              <option value="bybit">Bybit</option>
-              <option value="ibkr">IBKR (US Stocks)</option>
-            </select>
-            <textarea placeholder='{"key": "value"}' value={form.params}
-              onChange={e => setForm({ ...form, params: e.target.value })}
-              rows={3}
-              className="px-3 py-2 rounded-lg text-sm border font-mono bg-transparent"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }} />
+        <div className="qt-card animate-in mb-6" style={{ border: '1px solid var(--accent-dim)' }}>
+          <div className="flex items-center gap-2 mb-5">
+            <Plus size={14} style={{ color: 'var(--accent)' }} />
+            <span style={{ fontSize: 14, fontWeight: 600 }}>New Strategy</span>
           </div>
-          <button onClick={create} className="mt-4 px-4 py-2 rounded-lg text-sm font-medium text-white"
-            style={{ background: 'var(--accent)' }}>Create</button>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Name</label>
+              <input placeholder="My Alpha Strategy" value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                className="qt-input" />
+            </div>
+            <div>
+              <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Type</label>
+              <select value={form.strategy_type}
+                onChange={e => {
+                  const t = types.find(t => t.name === e.target.value);
+                  setForm({ ...form, strategy_type: e.target.value, params: JSON.stringify(t?.params || {}, null, 2) });
+                }}
+                className="qt-select w-full">
+                <option value="">Select strategy type...</option>
+                {types.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Exchange</label>
+              <select value={form.exchange} onChange={e => setForm({ ...form, exchange: e.target.value })}
+                className="qt-select w-full">
+                <option value="paper">Paper Trading</option>
+                <option value="binance">Binance</option>
+                <option value="okx">OKX</option>
+                <option value="bybit">Bybit</option>
+                <option value="ibkr">IBKR (US Stocks)</option>
+              </select>
+            </div>
+            <div>
+              <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Parameters</label>
+              <textarea placeholder='{"key": "value"}' value={form.params}
+                onChange={e => setForm({ ...form, params: e.target.value })}
+                rows={3}
+                className="qt-input"
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 12, resize: 'vertical' }} />
+            </div>
+          </div>
+          <button onClick={create} className="qt-btn qt-btn-accent">
+            <Plus size={14} /> Create Strategy
+          </button>
         </div>
       )}
 
-      {/* Strategy Types */}
-      <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
-        Available Strategy Types ({types.length})
-      </h3>
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {types.map((t: any, i: number) => (
-          <div key={i} className="rounded-lg p-4 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-            <div className="text-sm font-semibold mb-1">{t.name}</div>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{t.description}</p>
-          </div>
-        ))}
+      {/* Available Strategy Types */}
+      <div className="mb-8 animate-in" style={{ animationDelay: '50ms' }}>
+        <div className="qt-label mb-4">Available Types</div>
+        <div className="grid grid-cols-3 gap-3">
+          {types.map((t: any, i: number) => (
+            <div key={i} className="qt-card qt-card-glow" style={{ padding: 16 }}>
+              <div className="flex items-center gap-2 mb-2">
+                <Cpu size={13} style={{ color: 'var(--accent)' }} />
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{t.name}</span>
+              </div>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                {t.description}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Configured Strategies */}
-      <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
-        Configured Strategies ({strategies.length})
-      </h3>
-      <div className="space-y-3">
-        {strategies.map((s: any) => (
-          <div key={s.id} className="rounded-xl p-5 border flex items-center justify-between"
-               style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold">{s.name}</span>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  s.is_enabled ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                }`}>{s.status}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
-                  {s.execution_mode}
-                </span>
+      <div className="animate-in" style={{ animationDelay: '100ms' }}>
+        <div className="qt-label mb-4">Active Configurations ({strategies.length})</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {strategies.map((s: any) => (
+            <div key={s.id} className="qt-card" style={{
+              padding: '16px 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              borderLeft: s.is_enabled ? '2px solid var(--green)' : '2px solid var(--border)',
+            }}>
+              <div style={{ flex: 1 }}>
+                <div className="flex items-center gap-3 mb-1">
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{s.name}</span>
+                  <span className="qt-badge" style={{
+                    background: s.is_enabled ? 'var(--green-dim)' : 'var(--bg-elevated)',
+                    color: s.is_enabled ? 'var(--green)' : 'var(--text-muted)',
+                  }}>{s.status}</span>
+                  <span className="qt-badge" style={{ background: 'var(--blue-dim)', color: 'var(--blue)' }}>
+                    {s.execution_mode}
+                  </span>
+                  {s.exchange && (
+                    <span className="qt-badge" style={{ background: 'var(--purple-dim)', color: 'var(--purple)' }}>
+                      {s.exchange}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>
+                  {s.strategy_type} &middot; {JSON.stringify(s.params)}
+                </div>
               </div>
-              <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                Type: {s.strategy_type} | Exchange: {s.exchange || 'N/A'} | Params: {JSON.stringify(s.params)}
+              <div className="flex items-center gap-2">
+                <button onClick={() => toggle(s)} className="qt-btn qt-btn-ghost" style={{ padding: '7px 12px' }}>
+                  {s.is_enabled ? <Square size={14} style={{ color: 'var(--red)' }} /> : <Play size={14} style={{ color: 'var(--green)' }} />}
+                  <span style={{ fontSize: 12 }}>{s.is_enabled ? 'Stop' : 'Start'}</span>
+                </button>
+                <button onClick={() => remove(s.id)} className="qt-btn qt-btn-ghost" style={{ padding: '7px 10px' }}>
+                  <Trash2 size={14} style={{ color: 'var(--red)' }} />
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => toggle(s)}
-                className={`p-2 rounded-lg text-sm ${s.is_enabled ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                {s.is_enabled ? <Square size={16} /> : <Play size={16} />}
-              </button>
-              <button onClick={() => remove(s.id)} className="p-2 rounded-lg bg-gray-500/20 text-gray-400">
-                <Trash2 size={16} />
-              </button>
+          ))}
+          {strategies.length === 0 && (
+            <div className="qt-card" style={{ textAlign: 'center', padding: '40px 0', borderStyle: 'dashed' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                No strategies configured. Click <strong style={{ color: 'var(--accent)' }}>New Strategy</strong> to begin.
+              </p>
             </div>
-          </div>
-        ))}
-        {strategies.length === 0 && (
-          <p className="text-sm text-center py-8" style={{ color: 'var(--text-secondary)' }}>
-            No strategies configured yet. Click "New Strategy" to create one.
-          </p>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
