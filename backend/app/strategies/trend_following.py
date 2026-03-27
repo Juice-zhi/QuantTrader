@@ -38,6 +38,17 @@ class TrendFollowingStrategy(BaseStrategy):
         "pullback_ema": 20,          # 回调到此EMA附近视为加仓机会
         "stop_loss": 0.06,           # 最大止损
     }
+    param_descriptions = {
+        "fast_ema": "快线EMA周期，用于捕捉短期趋势",
+        "medium_ema": "中线EMA周期，用于确认中期趋势",
+        "slow_ema": "慢线EMA周期，用于判断长期趋势方向",
+        "adx_period": "ADX趋势强度指标计算周期",
+        "adx_threshold": "ADX阈值，高于此值确认强趋势启动",
+        "atr_period": "ATR平均真实波幅计算周期",
+        "atr_trail_mult": "ATR追踪止损倍数，止损距离 = ATR × 此倍数（核心参数）",
+        "pullback_ema": "回调EMA周期，价格回调到此均线附近视为加仓机会",
+        "stop_loss": "最大止损比例",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params
@@ -145,6 +156,12 @@ class SupertrendStrategy(BaseStrategy):
         "trend_filter_ema": 0,  # 0 = 不用趋势滤波 (Supertrend自身就是趋势系统)
         "stop_loss": 0.05,
     }
+    param_descriptions = {
+        "atr_period": "ATR计算周期，决定Supertrend通道宽度的波动率窗口",
+        "multiplier": "ATR倍数，控制Supertrend通道距中轴的距离",
+        "trend_filter_ema": "趋势滤波EMA周期，0表示不使用额外趋势滤波",
+        "stop_loss": "最大止损比例",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params
@@ -251,6 +268,14 @@ class BreakoutPullbackStrategy(BaseStrategy):
         "atr_sl_mult": 2.5,
         "adx_threshold": 20,
         "stop_loss": 0.05,
+    }
+    param_descriptions = {
+        "breakout_period": "突破周期，计算N日最高价/最低价的回溯天数",
+        "pullback_ema": "回调EMA周期，价格回调到此均线附近等待再次入场",
+        "atr_period": "ATR平均真实波幅计算周期",
+        "atr_sl_mult": "ATR止损倍数，动态止损距离 = ATR × 此倍数",
+        "adx_threshold": "ADX趋势强度阈值，高于此值确认趋势有效",
+        "stop_loss": "最大止损比例",
     }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:

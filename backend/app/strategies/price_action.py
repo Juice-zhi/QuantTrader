@@ -27,6 +27,15 @@ class PriceActionStrategy(BaseStrategy):
         "engulf_min_ratio": 1.2,    # 吞没实体比 >= 1.2
         "stop_loss": 0.04,
     }
+    param_descriptions = {
+        "trend_ema": "趋势滤波EMA周期，用于判断当前趋势方向",
+        "atr_period": "ATR平均真实波幅计算周期",
+        "atr_sl_mult": "ATR止损倍数，止损距离 = ATR × 此倍数",
+        "pin_bar_ratio": "Pin Bar影线与实体比阈值，影线/实体 ≥ 此值判定为Pin Bar",
+        "body_pct_max": "Pin Bar实体占比上限，实体占K线总长比例 ≤ 此值",
+        "engulf_min_ratio": "吞没形态实体比阈值，当前实体/前一根实体 ≥ 此值",
+        "stop_loss": "最大止损比例",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

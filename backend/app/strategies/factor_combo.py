@@ -27,6 +27,14 @@ class FactorComboStrategy(BaseStrategy):
         "sell_threshold": -0.5,
         "weights": [0.25, 0.20, 0.20, 0.20, 0.15],
     }
+    param_descriptions = {
+        "rsi_period": "RSI相对强弱指标计算周期",
+        "momentum_period": "价格动量因子计算周期",
+        "mfi_period": "资金流量指数(MFI)计算周期",
+        "buy_threshold": "综合因子评分买入阈值，评分高于此值触发买入",
+        "sell_threshold": "综合因子评分卖出阈值，评分低于此值触发卖出",
+        "weights": "五个因子的权重分配 [RSI, MACD, 动量, MFI, 量比]",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

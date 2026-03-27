@@ -22,6 +22,14 @@ class GridTradingStrategy(BaseStrategy):
         "atr_period": 14,
         "atr_multiplier": 3,
     }
+    param_descriptions = {
+        "grid_count": "网格数量，将价格区间等分为多少格",
+        "upper_pct": "网格上界偏移比例（基于初始价格）",
+        "lower_pct": "网格下界偏移比例（基于初始价格）",
+        "use_atr": "是否使用ATR动态调整网格范围",
+        "atr_period": "ATR平均真实波幅计算周期",
+        "atr_multiplier": "ATR倍数，用于确定动态网格上下界宽度",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

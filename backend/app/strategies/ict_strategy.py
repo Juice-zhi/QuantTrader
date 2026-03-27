@@ -30,6 +30,15 @@ class ICTStrategy(BaseStrategy):
         "atr_period": 14,
         "stop_loss": 0.04,
     }
+    param_descriptions = {
+        "swing_lookback": "摆动高低点回溯周期，用于识别Swing High/Low",
+        "fvg_min_gap_atr": "FVG最小缺口阈值（ATR倍数），缺口 ≥ ATR × 此值才视为有效FVG",
+        "ob_lookback": "订单块(Order Block)回溯周期",
+        "liquidity_lookback": "流动性扫取回溯周期，检测前N根K线的高低点",
+        "trend_ema": "趋势滤波EMA周期，用于判断大方向",
+        "atr_period": "ATR平均真实波幅计算周期",
+        "stop_loss": "最大止损比例",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

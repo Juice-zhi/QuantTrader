@@ -23,6 +23,13 @@ class MomentumBreakoutStrategy(BaseStrategy):
         "volume_ratio_threshold": 1.5,
         "stop_loss": 0.05,
     }
+    param_descriptions = {
+        "breakout_period": "突破周期，计算N日最高价/最低价的回溯天数",
+        "momentum_period": "动量计算周期，衡量价格变化速度",
+        "adx_threshold": "ADX趋势强度阈值，高于此值确认趋势成立",
+        "volume_ratio_threshold": "量比阈值，高于此值确认放量突破",
+        "stop_loss": "最大止损比例",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

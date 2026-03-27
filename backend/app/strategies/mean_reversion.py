@@ -22,6 +22,14 @@ class MeanReversionStrategy(BaseStrategy):
         "rsi_overbought": 70,
         "stop_loss": 0.05,
     }
+    param_descriptions = {
+        "bb_period": "布林带周期",
+        "bb_std": "布林带标准差倍数",
+        "rsi_period": "RSI 周期",
+        "rsi_oversold": "RSI 超卖阈值 (低于此值买入)",
+        "rsi_overbought": "RSI 超买阈值 (高于此值卖出)",
+        "stop_loss": "止损百分比",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

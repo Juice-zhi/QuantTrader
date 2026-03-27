@@ -18,6 +18,10 @@ class DualMAStrategy(BaseStrategy):
         "fast_period": 10,
         "slow_period": 30,
     }
+    param_descriptions = {
+        "fast_period": "快线EMA周期",
+        "slow_period": "慢线EMA周期",
+    }
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         p = self.params

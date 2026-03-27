@@ -32,11 +32,17 @@ export const factorsApi = {
 // ── Strategies API ──
 export const strategiesApi = {
   types: () => request<any>('/api/strategies/types'),
+  paramSchema: (strategyType: string) =>
+    request<any>(`/api/strategies/types/${strategyType}/param-schema`),
   list: () => request<any>('/api/strategies/'),
   create: (body: any) =>
     request<any>('/api/strategies/', { method: 'POST', body: JSON.stringify(body) }),
   update: (id: number, body: any) =>
     request<any>(`/api/strategies/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  updateParam: (id: number, key: string, value: number) =>
+    request<any>(`/api/strategies/${id}/params/${key}?value=${value}`, { method: 'PUT' }),
+  resetParams: (id: number) =>
+    request<any>(`/api/strategies/${id}/reset-params`, { method: 'POST' }),
   delete: (id: number) =>
     request<any>(`/api/strategies/${id}`, { method: 'DELETE' }),
 };
