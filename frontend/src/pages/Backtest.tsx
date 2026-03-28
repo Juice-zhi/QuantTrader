@@ -1,13 +1,22 @@
 import { useState, useEffect } from 'react';
 import { backtestApi, strategiesApi } from '../services/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
-import { Play, Loader2, Clock, Target } from 'lucide-react';
+import { Play, Loader2, Clock, Target, AlertTriangle } from 'lucide-react';
+
+const MARKET_LABELS: Record<string, string> = {
+  crypto: '🪙 Crypto',
+  us_stock: '🇺🇸 US Stocks',
+  hk_stock: '🇭🇰 HK Stocks',
+  cn_stock: '🇨🇳 A-Shares',
+};
 
 export default function Backtest() {
   const [types, setTypes] = useState<any[]>([]);
   const [results, setResults] = useState<any[]>([]);
+  const [symbols, setSymbols] = useState<Record<string, any[]>>({});
   const [activeResult, setActiveResult] = useState<any>(null);
   const [running, setRunning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     strategy_type: '', symbol: 'BTC/USDT', timeframe: '1d',
     exchange: 'binance', initial_capital: 100000, params: '{}',
@@ -15,21 +24,32 @@ export default function Backtest() {
 
   useEffect(() => {
     strategiesApi.types().then(d => setTypes(d.strategies || []));
-    backtestApi.results().then(d => setResults(d.results || []));
+    backtestApi.results().then(d => setResults(d.results || [])).catch(() => {});
+    backtestApi.symbols().then(setSymbols).catch(() => {});
   }, []);
+
+  const handleSymbolSelect = (sym: any) => {
+    setForm(f => ({ ...f, symbol: sym.symbol, exchange: sym.exchange }));
+  };
 
   const runBacktest = async () => {
     setRunning(true);
+    setError(null);
+    setActiveResult(null);
     try {
       const result = await backtestApi.run({
         ...form,
         initial_capital: Number(form.initial_capital),
         params: JSON.parse(form.params || '{}'),
       });
-      setActiveResult(result);
-      backtestApi.results().then(d => setResults(d.results || []));
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setActiveResult(result);
+        backtestApi.results().then(d => setResults(d.results || [])).catch(() => {});
+      }
     } catch (e: any) {
-      alert('Backtest failed: ' + e.message);
+      setError(e.message || 'Unknown error');
     }
     setRunning(false);
   };
@@ -64,6 +84,43 @@ export default function Backtest() {
         </div>
       </div>
 
+      {/* Symbol Picker */}
+      <div className="qt-card animate-in mb-4" style={{ animationDelay: '30ms', padding: '16px 20px' }}>
+        <div className="qt-label mb-3">Select Symbol</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {Object.entries(symbols).map(([market, syms]) => (
+            <div key={market}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                {MARKET_LABELS[market] || market}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {(syms as any[]).map((s: any) => {
+                  const isSelected = form.symbol === s.symbol && form.exchange === s.exchange;
+                  return (
+                    <button
+                      key={s.symbol}
+                      onClick={() => handleSymbolSelect(s)}
+                      className="qt-btn"
+                      style={{
+                        padding: '5px 10px', fontSize: 11,
+                        fontFamily: 'var(--font-mono)',
+                        background: isSelected ? 'var(--accent)' : 'var(--bg-primary)',
+                        color: isSelected ? '#0c0d12' : 'var(--text-secondary)',
+                        border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
+                        fontWeight: isSelected ? 600 : 400,
+                      }}
+                    >
+                      {s.symbol}
+                      <span style={{ opacity: 0.6, marginLeft: 4, fontSize: 9 }}>{s.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Config Form */}
       <div className="qt-card animate-in mb-6" style={{ animationDelay: '50ms' }}>
         <div className="grid grid-cols-3 gap-4 mb-4">
@@ -79,7 +136,10 @@ export default function Backtest() {
           </div>
           <div>
             <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Symbol</label>
-            <input value={form.symbol} onChange={e => setForm({ ...form, symbol: e.target.value })} className="qt-input" />
+            <div className="qt-input" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent)' }}>{form.symbol}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>@ {form.exchange}</span>
+            </div>
           </div>
           <div>
             <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Timeframe</label>
@@ -95,6 +155,10 @@ export default function Backtest() {
               <option value="binance">Binance</option>
               <option value="okx">OKX</option>
               <option value="nasdaq">NASDAQ</option>
+              <option value="nyse">NYSE</option>
+              <option value="hkex">HKEX</option>
+              <option value="sse">SSE (上交所)</option>
+              <option value="szse">SZSE (深交所)</option>
             </select>
           </div>
           <div>
@@ -116,6 +180,22 @@ export default function Backtest() {
             rows={3} className="qt-input" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, resize: 'vertical' }} />
         </div>
       </div>
+
+      {/* Error display */}
+      {error && (
+        <div className="qt-card animate-in mb-6" style={{
+          borderColor: 'var(--red)', borderLeft: '3px solid var(--red)',
+          padding: '14px 18px', display: 'flex', alignItems: 'flex-start', gap: 10,
+        }}>
+          <AlertTriangle size={16} style={{ color: 'var(--red)', marginTop: 2, flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--red)', marginBottom: 4 }}>Backtest Error</div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', lineHeight: 1.5, wordBreak: 'break-all' }}>
+              {error}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {activeResult && (
@@ -148,7 +228,7 @@ export default function Backtest() {
                 <Target size={14} style={{ color: 'var(--accent)' }} />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Equity Curve</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
-                  {equityData.length} data points
+                  {equityData.length} points | {form.symbol}
                 </span>
               </div>
               <ResponsiveContainer width="100%" height={260}>

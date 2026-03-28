@@ -7,6 +7,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text.slice(0, 200) || `HTTP ${resp.status}`);
+  }
   return resp.json();
 }
 
@@ -53,6 +57,7 @@ export const backtestApi = {
     request<any>('/api/backtest/run', { method: 'POST', body: JSON.stringify(body) }),
   results: () => request<any>('/api/backtest/results'),
   detail: (id: number) => request<any>(`/api/backtest/results/${id}`),
+  symbols: () => request<any>('/api/backtest/symbols'),
 };
 
 // ── Trading API ──
