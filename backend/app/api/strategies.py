@@ -13,7 +13,7 @@ from app.database.models import Strategy as StrategyModel, StrategyStatus, Execu
 from app.strategies.registry import StrategyRegistry
 
 # 触发策略注册
-from app.strategies import mean_reversion, momentum_strategy, factor_combo, grid_trading, dual_ma, price_action, ict_strategy, trend_following
+from app.strategies import mean_reversion, momentum_strategy, factor_combo, grid_trading, dual_ma, price_action, ict_strategy, trend_following, lgbm_strategy
 
 router = APIRouter(prefix="/api/strategies", tags=["Strategies"])
 
