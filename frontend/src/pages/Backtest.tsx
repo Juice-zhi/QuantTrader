@@ -127,11 +127,11 @@ export default function Backtest() {
           <div>
             <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Strategy</label>
             <select value={form.strategy_type} onChange={e => {
-              const t = types.find(t => t.name === e.target.value);
+              const t = types.find(t => (t.class_name || t.name) === e.target.value);
               setForm({ ...form, strategy_type: e.target.value, params: JSON.stringify(t?.params || {}, null, 2) });
             }} className="qt-select w-full">
               <option value="">Select strategy...</option>
-              {types.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+              {types.map(t => <option key={t.class_name || t.name} value={t.class_name || t.name}>{t.name}</option>)}
             </select>
           </div>
           <div>

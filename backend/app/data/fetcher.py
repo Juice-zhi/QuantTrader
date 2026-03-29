@@ -136,25 +136,37 @@ class StockFetcher:
         timeframe: str = "1d",
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        period: str = "1y",
+        period: str = "max",
     ) -> pd.DataFrame:
         """
         抓取股票K线数据
 
         Args:
-            symbol: 股票代码, e.g. "AAPL", "0700.HK"
+            symbol: 股票代码, e.g. "AAPL", "0700.HK", "600519.SS"
             timeframe: 时间粒度
             start_date: 起始日期 "YYYY-MM-DD"
             end_date: 结束日期
             period: 时间范围 (当start_date为空时使用), e.g. "1y", "6mo", "max"
         """
-        ticker = yf.Ticker(symbol)
+        # yfinance 对A股/港股 ticker 格式兼容
+        yf_symbol = symbol
+        ticker = yf.Ticker(yf_symbol)
         interval = YF_INTERVAL_MAP.get(timeframe, "1d")
 
-        if start_date:
-            hist = ticker.history(start=start_date, end=end_date, interval=interval)
-        else:
-            hist = ticker.history(period=period, interval=interval)
+        # yfinance 限制: 1m数据只能获取7天, 短周期用较短period
+        if interval in ("1m", "2m", "5m"):
+            period = "5d"
+        elif interval in ("15m", "30m", "1h"):
+            period = "60d"
+
+        try:
+            if start_date:
+                hist = ticker.history(start=start_date, end=end_date, interval=interval)
+            else:
+                hist = ticker.history(period=period, interval=interval)
+        except Exception as e:
+            print(f"yfinance error for {symbol}: {e}")
+            return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
 
         if hist.empty:
             return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
