@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { backtestApi, strategiesApi } from '../services/api';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
-import { Play, Loader2, Clock, Target, AlertTriangle } from 'lucide-react';
+import { Play, Loader2, Clock, Target, AlertTriangle, Calendar } from 'lucide-react';
 
 const MARKET_LABELS: Record<string, string> = {
   crypto: '🪙 Crypto',
@@ -10,6 +10,26 @@ const MARKET_LABELS: Record<string, string> = {
   cn_stock: '🇨🇳 A-Shares',
 };
 
+// 快捷时间范围
+const DATE_PRESETS = [
+  { label: '近6月', months: 6 },
+  { label: '近1年', months: 12 },
+  { label: '近2年', months: 24 },
+  { label: '近3年', months: 36 },
+  { label: '近5年', months: 60 },
+  { label: '全部', months: 0 },
+];
+
+function getDateBefore(months: number): string {
+  const d = new Date();
+  d.setMonth(d.getMonth() - months);
+  return d.toISOString().slice(0, 10);
+}
+
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function Backtest() {
   const [types, setTypes] = useState<any[]>([]);
   const [results, setResults] = useState<any[]>([]);
@@ -17,9 +37,11 @@ export default function Backtest() {
   const [activeResult, setActiveResult] = useState<any>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState('全部');
   const [form, setForm] = useState({
     strategy_type: '', symbol: 'BTC/USDT', timeframe: '1d',
     exchange: 'binance', initial_capital: 100000, params: '{}',
+    start_date: '', end_date: '',
   });
 
   useEffect(() => {
@@ -37,11 +59,18 @@ export default function Backtest() {
     setError(null);
     setActiveResult(null);
     try {
-      const result = await backtestApi.run({
+      const body: any = {
         ...form,
         initial_capital: Number(form.initial_capital),
         params: JSON.parse(form.params || '{}'),
-      });
+      };
+      // 只在有值时发送日期
+      if (form.start_date) body.start_date = form.start_date;
+      else delete body.start_date;
+      if (form.end_date) body.end_date = form.end_date;
+      else delete body.end_date;
+
+      const result = await backtestApi.run(body);
       if (result.error) {
         setError(result.error);
       } else {
@@ -148,6 +177,74 @@ export default function Backtest() {
             </select>
           </div>
         </div>
+
+        {/* Date Range */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Calendar size={12} style={{ color: 'var(--accent)' }} />
+            <label className="qt-label">Date Range</label>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Preset buttons */}
+            <div className="flex gap-1.5">
+              {DATE_PRESETS.map(p => (
+                <button
+                  key={p.label}
+                  onClick={() => {
+                    setActivePreset(p.label);
+                    if (p.months === 0) {
+                      setForm(f => ({ ...f, start_date: '', end_date: '' }));
+                    } else {
+                      setForm(f => ({ ...f, start_date: getDateBefore(p.months), end_date: todayStr() }));
+                    }
+                  }}
+                  className="qt-btn"
+                  style={{
+                    padding: '4px 10px', fontSize: 11,
+                    background: activePreset === p.label ? 'var(--accent)' : 'var(--bg-primary)',
+                    color: activePreset === p.label ? '#0c0d12' : 'var(--text-secondary)',
+                    border: `1px solid ${activePreset === p.label ? 'var(--accent)' : 'var(--border)'}`,
+                    fontWeight: activePreset === p.label ? 600 : 400,
+                  }}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            <div style={{ width: 1, height: 20, background: 'var(--border)' }} />
+            {/* Custom date inputs */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={form.start_date}
+                onChange={e => { setForm(f => ({ ...f, start_date: e.target.value })); setActivePreset(''); }}
+                className="qt-input"
+                style={{ width: 150, padding: '4px 8px', fontSize: 12, fontFamily: 'var(--font-mono)' }}
+                placeholder="Start"
+              />
+              <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>→</span>
+              <input
+                type="date"
+                value={form.end_date}
+                onChange={e => { setForm(f => ({ ...f, end_date: e.target.value })); setActivePreset(''); }}
+                className="qt-input"
+                style={{ width: 150, padding: '4px 8px', fontSize: 12, fontFamily: 'var(--font-mono)' }}
+                placeholder="End"
+              />
+            </div>
+            {form.start_date && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+                {form.start_date} ~ {form.end_date || 'now'}
+              </span>
+            )}
+            {!form.start_date && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--text-muted)' }}>
+                All available data
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
             <label className="qt-label" style={{ display: 'block', marginBottom: 6 }}>Exchange</label>
