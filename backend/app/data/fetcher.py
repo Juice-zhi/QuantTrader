@@ -153,11 +153,29 @@ class StockFetcher:
         ticker = yf.Ticker(yf_symbol)
         interval = YF_INTERVAL_MAP.get(timeframe, "1d")
 
-        # yfinance 限制: 1m数据只能获取7天, 短周期用较短period
-        if interval in ("1m", "2m", "5m"):
-            period = "5d"
-        elif interval in ("15m", "30m", "1h"):
-            period = "60d"
+        # yfinance 限制:
+        #   1m: 最多7天    5m: 最多60天
+        #   15m/30m: 最多60天   1h: 最多730天
+        #   1d/1wk: 无限制
+        # 超出范围的 start_date 会返回空数据，需要强制覆盖
+        intraday_max_days = {
+            "1m": 5, "2m": 58, "5m": 58,
+            "15m": 58, "30m": 58,
+            "1h": 728,
+        }
+
+        if interval in intraday_max_days:
+            max_days = intraday_max_days[interval]
+            earliest_allowed = (datetime.now() - timedelta(days=max_days)).strftime("%Y-%m-%d")
+
+            if start_date and start_date < earliest_allowed:
+                # start_date 超出 yfinance 限制，强制使用 period
+                start_date = None
+                end_date = None
+
+            if not start_date:
+                period_map = {"1m": "5d", "2m": "58d", "5m": "58d", "15m": "58d", "30m": "58d", "1h": "728d"}
+                period = period_map.get(interval, "60d")
 
         try:
             if start_date:
